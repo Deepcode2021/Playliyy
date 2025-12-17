@@ -62,7 +62,7 @@ async function downloadPlaylistAsZip() {
     downloadBtn.disabled = true;
 
     // Use your specific Hugging Face Space URL
-    const hfBase = "https://kyakaruiska-yt-bulk-zip-api.hf.space";
+    const hfBase = "https://kyakaruiska-ytmusicapi.hf.space";
 
     // We send only the IDs to the server; the server handles fetching and zipping
     const ids = globalYtData.map(item => item.id).join(',');
@@ -91,4 +91,5 @@ function getPlaylistIdFromUrl(link) {
         return url.searchParams.get('list');
     } catch (e) { return null; }
 }
+
 
