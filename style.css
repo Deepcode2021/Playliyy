@@ -1,0 +1,223 @@
+body{
+    background-color: black;
+    justify-content: center;
+    /* align-items: center; */
+}
+
+.blur-box{
+    background-color: white;
+    position: absolute;
+    width: 40%;
+    height: 10rem;
+    filter: blur(70px);
+    /* rotate: ; */
+    transform: rotate(-45deg);
+    opacity: .3;
+    margin-left: 50%;
+    z-index: -9;
+}
+
+.main{
+    position: absolute;
+    width: 100%;
+    height: 9rem;
+    background-color: rgba(240, 248, 255, 0.139);
+    z-index: 2;
+    border-radius: 1%;
+    justify-content: center;
+
+    display: flex;
+}
+header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 1rem 2rem;
+    background-color: rgba(57, 57, 57, 0.393);
+}
+header h1 {
+    margin: 0;
+    font-size: 2rem;
+    margin-left: 10%;
+    margin-right: 10%;
+    /* left: 20%; */
+    font-family: system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, 'Open Sans', 'Helvetica Neue', sans-serif;
+    letter-spacing: 0.3rem;
+    color: white;
+}
+.playl {
+    font-size: 1rem;
+    /* letter-spacing: 1px; */
+    /* margin-left: 2%; */
+}
+.link {
+    border: 2px solid transparent;
+    width: 60%;
+    height: 3rem;
+    padding-left: 0.8em;
+    outline: none;
+    overflow: hidden;
+    background-color: #d4d4d4;
+    border-radius: 5px;
+    transition: all 0.5s;
+    position: relative;
+    font-size: 1.5rem;
+    font-family: system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, 'Open Sans', 'Helvetica Neue', sans-serif;
+    top: 5rem;
+}
+
+.link:hover,
+.link:focus {
+    border: 2px solid #000000;
+    box-shadow: 0px 0px 0px 7px rgba(81, 81, 81, 0.2);
+    background-color: white;
+}
+
+#cardContainer {
+    position: absolute;
+    top: 60%;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 15px;
+    width: 100%;
+    /* height: 30%; */
+    margin-right: 2rem;
+    justify-content: center;
+    /* filter: blur(4px); */
+}
+
+.card {
+    width: 180px;
+    /* position: relative; */
+    background: rgb(63, 71, 80);
+    padding: 20px;
+    border-radius: 10px;
+    box-shadow: 0 4px 12px rgba(57, 57, 57, 0.1);
+    text-align: center;
+    border-top: 5px solid #bdfbff;
+    /* z-index: 9; */
+    animation: fadeIn 0.3s ease;
+}
+.card :hover{
+    /* background-color: #d4d4d4; */
+    animation: fadeIN 0.5 ease;
+    cursor: pointer;
+    filter: blur(3px);  
+
+}
+.card h3 {
+    margin: 0 0 10px 0;
+    font-size: 1rem;
+    /* z-index: 9; */
+    font-family: system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, 'Open Sans', 'Helvetica Neue', sans-serif;
+    color:rgb(255, 255, 255);
+}
+
+@keyframes fadeIn {
+    from {
+        opacity: 0;
+        transform: translateY(10px);
+    }
+
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+.enter {
+    color: #fff;
+    font-size: 1.5rem;
+    font-weight: 600;
+    letter-spacing: 3px;
+    font-family: system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, 'Open Sans', 'Helvetica Neue', sans-serif;
+}
+/* From Uiverse.io by satyamchaudharydev */
+.button {
+    --width: 150px;
+    --height: 65px;
+    --tooltip-height: 35px;
+    --tooltip-width: 90px;
+    --gap-between-tooltip-to-button: 18px;
+    --button-color: #262626;
+    --tooltip-color: #fff;
+    width: var(--width);
+    height: var(--height);
+    background: var(--button-color);
+    position: relative;
+    text-align: center;
+    border-radius: 0.45em;
+    font-family: "Arial";
+    position: absolute;
+    transition: background 0.3s;
+    top: 110%;
+    z-index: 10;
+
+}
+
+.button::before {
+    position: absolute;
+    content: attr(data-tooltip);
+    width: var(--tooltip-width);
+    height: var(--tooltip-height);
+    background-color: var(--tooltip-color);
+    font-size: 0.9rem;
+    color: #111;
+    border-radius: .25em;
+    line-height: var(--tooltip-height);
+    bottom: calc(var(--height) + var(--gap-between-tooltip-to-button) + 10px);
+    left: calc(50% - var(--tooltip-width) / 2);
+}
+
+.button::after {
+    position: absolute;
+    content: '';
+    width: 0;
+    height: 0;
+    border: 10px solid transparent;
+    border-top-color: var(--tooltip-color);
+    left: calc(50% - 10px);
+    bottom: calc(100% + var(--gap-between-tooltip-to-button) - 10px);
+}
+
+.button::after,
+.button::before {
+    opacity: 0;
+    visibility: hidden;
+    transition: all 0.5s;
+}
+
+.text {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.button-wrapper,
+.text {
+    overflow: hidden;
+    position: absolute;
+    width: 100%;
+    height: 100%;
+    left: 0;
+    color: #fff;
+}
+
+.text {
+    top: 0
+}
+
+.text,
+.icon {
+    transition: top 0.5s;
+}
+
+
+
+.button:hover {
+    background: #c9c9c9;
+    cursor: pointer;
+}
+
+.button:hover .text {
+    top: -100%;
+}
