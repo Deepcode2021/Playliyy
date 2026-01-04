@@ -1,6 +1,23 @@
+/* Custom Properties for easy theme management */
+@import url('https://fonts.googleapis.com/css2?family=Andika:ital,wght@0,400;0,700;1,400;1,700&family=Tomorrow:ital,wght@0,100;0,200;0,300;0,400;0,500;0,600;0,700;0,800;0,900;1,100;1,200;1,300;1,400;1,500;1,600;1,700;1,800;1,900&display=swap');
+/* :root {
+    --bg-dark: #000000;
+    --card-bg: #111111;
+    --accent-glow: #00d2ff;
+    --text-main: #ffffff;
+    --text-dim: #a0a0a0;
+    --glass-bg: rgba(255, 255, 255, 0.05);
+} */
+
+body::-webkit-scrollbar {
+    display: none;
+}
+
+
 body{
     background-color: black;
     justify-content: center;
+    /* width: 100%; */
     /* align-items: center; */
 }
 
@@ -25,7 +42,6 @@ body{
     z-index: 2;
     border-radius: 1%;
     justify-content: center;
-
     display: flex;
 }
 header {
@@ -62,8 +78,9 @@ header h1 {
     transition: all 0.5s;
     position: relative;
     font-size: 1.5rem;
-    font-family: system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, 'Open Sans', 'Helvetica Neue', sans-serif;
-    top: 5rem;
+    font-family:Arial, Helvetica, sans-serif;
+    /* font-family: system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, 'Open Sans', 'Helvetica Neue', sans-serif; */
+    top: 3rem;
 }
 
 .link:hover,
@@ -75,7 +92,7 @@ header h1 {
 
 #cardContainer {
     position: absolute;
-    top: 60%;
+    top: 80%;
     display: flex;
     flex-wrap: wrap;
     gap: 15px;
@@ -89,7 +106,7 @@ header h1 {
 .card {
     width: 180px;
     /* position: relative; */
-    background: rgb(63, 71, 80);
+    background: rgb(52, 52, 52);
     padding: 20px;
     border-radius: 10px;
     box-shadow: 0 4px 12px rgba(57, 57, 57, 0.1);
@@ -97,6 +114,7 @@ header h1 {
     border-top: 5px solid #bdfbff;
     /* z-index: 9; */
     animation: fadeIn 0.3s ease;
+
 }
 .card :hover{
     /* background-color: #d4d4d4; */
@@ -109,8 +127,11 @@ header h1 {
     margin: 0 0 10px 0;
     font-size: 1rem;
     /* z-index: 9; */
-    font-family: system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, 'Open Sans', 'Helvetica Neue', sans-serif;
+    /* font-family: system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, 'Open Sans', 'Helvetica Neue', sans-serif; */
     color:rgb(255, 255, 255);
+        font-family: "Tomorrow", sans-serif;
+            font-weight: 600;
+            font-style: normal;
 }
 
 @keyframes fadeIn {

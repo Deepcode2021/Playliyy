@@ -13,7 +13,7 @@ LINK_INPUT.addEventListener('keyup', async function (event) {
         event.preventDefault();
 
         const playlistId = getPlaylistIdFromUrl(LINK_INPUT.value);
-        const API_KEY = 'AIzaSyCztruboSxYzKp61Nsp1DOZe7YL99Em7Zc';
+        
 
         if (playlistId) {
             // Clear previous data
@@ -26,35 +26,30 @@ LINK_INPUT.addEventListener('keyup', async function (event) {
 });
 
 // 2. Fetch logic
-async function getPlaylistSongNames(playlistId, apiKey) {
-    const MAX_RESULTS = 50;
-    let url = `https://www.googleapis.com/youtube/v3/playlistItems?part=snippet&playlistId=${playlistId}&key=${apiKey}&maxResults=${MAX_RESULTS}`;
+// Replace your old getPlaylistSongNames function with this
+async function getPlaylistSongNames(playlistId) {
+    // Your HF API URL
+    const hfBase = "https://kyakaruiska-ytmusicapi.hf.space";
+    const url = `${hfBase}/api/playlist?playlistId=${playlistId}`;
 
     try {
         const response = await fetch(url);
-        const data = await response.json();
+        const songs = await response.json();
 
-        if (data.items) {
-            data.items.forEach((item) => {
-                const songname = item.snippet.title;
-                const songurl = item.snippet.resourceId.videoId;
+        songs.forEach((song) => {
+            // Save for the ZIP function
+            globalYtUrls.push(song.id);
 
-                // Add to our global list for the zip function
-                globalYtUrls.push(songurl);
-
-                // UI Display
-                const card = document.createElement('div');
-                card.className = 'card';
-                card.innerHTML = `<h3>${songname}</h3>`;
-                container.appendChild(card);
-            });
-            console.log("Fetched IDs:", globalYtUrls);
-        }
+            // Update UI
+            const card = document.createElement('div');
+            card.className = 'card';
+            card.innerHTML = `<h3>${song.title}</h3>`;
+            container.appendChild(card);
+        });
     } catch (error) {
-        console.error('Fetch error:', error);
+        console.error('API Error:', error);
     }
 }
-
 // 3. ZIP and Convert Logic
 async function convertAndZip(ids) {
     const zip = new JSZip();
@@ -120,7 +115,7 @@ function getPlaylistIdFromUrl(link) {
 function downloadPlaylistAsZip() {
     // globalYtUrls is your array of video IDs from the YouTube API
     const ids = globalYtUrls.join(',');
-    
+
     // Updated to match your exact Space URL
     const hfBase = "https://kyakaruiska-ytmusicapi.hf.space";
 
