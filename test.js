@@ -120,8 +120,10 @@ function getPlaylistIdFromUrl(link) {
 function downloadPlaylistAsZip() {
     // globalYtUrls is your array of video IDs from the YouTube API
     const ids = globalYtUrls.join(',');
-    const hfBase = "https://kyakaruiska-yt-bulk-zip-api.hf.space";
+    
+    // Updated to match your exact Space URL
+    const hfBase = "https://kyakaruiska-ytmusicapi.hf.space";
 
-    // This starts one single download of the entire .zip
+    // Trigger the download
     window.location.href = `${hfBase}/api/bulk-mp3?ids=${ids}`;
 }
