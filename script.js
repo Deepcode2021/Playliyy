@@ -1,33 +1,36 @@
 import JSZip from 'https://esm.sh/jszip@3.10.1';
 
-// 1. HELPER: Sleep function to prevent API blocking
+// 1. HELPER: Sleep function
 const sleep = (ms) => new Promise(resolve => setTimeout(resolve, ms));
 
 const container = document.getElementById('cardContainer');
 const LINK_INPUT = document.getElementById('link');
 const downloadBtn = document.querySelector('#button');
+// Grab the new UI elements for progress
+const btnText = document.getElementById('btnText');
+const progressFill = document.getElementById('progressFill');
 
 let globalYtData = [];
 
-// 2. LISTEN: Fetch playlist metadata
+// 2. LISTEN: Fetch Playlist
 LINK_INPUT.addEventListener('keyup', async function (event) {
     if (event.key === 'Enter') {
         event.preventDefault();
         const playlistId = getPlaylistIdFromUrl(LINK_INPUT.value);
-        const API_KEY = ${{ secrets.YOUTUBE_API_KEY }};
 
         if (playlistId) {
             container.innerHTML = '';
             globalYtData = [];
-            await getPlaylistSongNames(playlistId, API_KEY);
+            // Calling our secure Vercel API
+            await getPlaylistSongNames(playlistId);
         }
     }
 });
 
-// 3. FETCH: Get Titles & IDs
-async function getPlaylistSongNames(playlistId, apiKey) {
-    const MAX_RESULTS = 50;
-    const url = `https://www.googleapis.com/youtube/v3/playlistItems?part=snippet&playlistId=${playlistId}&key=${apiKey}&maxResults=${MAX_RESULTS}`;
+// 3. FETCH: Get Titles & IDs (Calls /api/get-playlist)
+async function getPlaylistSongNames(playlistId) {
+    // UPDATED: No API Key here. Pointing to our backend.
+    const url = `/api/get-playlist?id=${playlistId}`;
 
     try {
         const response = await fetch(url);
@@ -46,74 +49,75 @@ async function getPlaylistSongNames(playlistId, apiKey) {
             });
         }
     } catch (error) {
-        console.error('YouTube API fetch error:', error);
+        console.error('Error fetching playlist:', error);
+        alert("Failed to load playlist. Make sure the ID is correct.");
     }
 }
 
-// 4. DOWNLOAD: Updated to use the correct /v1/social/youtube/audio endpoint
+// 4. DOWNLOAD: Bulk Download (Calls /api/get-download-link)
 async function downloadPlaylistAsZip() {
     if (globalYtData.length === 0) {
         alert("No videos loaded!");
         return;
     }
 
-    downloadBtn.innerText = "Starting Bulk Download...";
+    // Reset UI
+    btnText.innerText = "Starting...";
+    progressFill.style.width = "0%";
     downloadBtn.disabled = true;
 
     const zip = new JSZip();
-    const RAPID_API_KEY = ${{ secrets.RAPID_API_KEY }};
-    const RAPID_HOST = 'youtube-mp3-2025.p.rapidapi.com';
+    const BATCH_SIZE = 3;
+
+    // Helper: Call our secure Vercel API
+    const processVideo = async (video) => {
+        try {
+            // UPDATED: Pointing to our backend
+            const apiUrl = `/api/get-download-link`;
+
+            const options = {
+                method: 'POST',
+                body: JSON.stringify({ id: video.id })
+            };
+
+            const response = await fetch(apiUrl, options);
+            const data = await response.json();
+
+            const downloadLink = data.linkDownload || data.link || data.url;
+
+            if (downloadLink) {
+                const audioResponse = await fetch(downloadLink);
+                const audioBlob = await audioResponse.blob();
+
+                const safeTitle = video.title.replace(/[\\/:*?"<>|]/g, "_").trim();
+                zip.file(`${safeTitle}.mp3`, audioBlob);
+                return true;
+            }
+        } catch (error) {
+            console.error(`Failed: ${video.title}`, error);
+            return false;
+        }
+    };
 
     try {
-        for (const [index, video] of globalYtData.entries()) {
+        const totalVideos = globalYtData.length;
+        let processedCount = 0;
 
-            downloadBtn.innerText = `Processing ${index + 1}/${globalYtData.length}`;
-            console.log(`Processing: ${video.title}`);
+        for (let i = 0; i < totalVideos; i += BATCH_SIZE) {
+            const batch = globalYtData.slice(i, i + BATCH_SIZE);
 
-            try {
-                // FIXED: Using the endpoint from your snippet
-                const apiUrl = `https://${RAPID_HOST}/v1/social/youtube/audio`;
+            await Promise.all(batch.map(video => processVideo(video)));
 
-                const options = {
-                    method: 'POST',
-                    headers: {
-                        'x-rapidapi-key': RAPID_API_KEY,
-                        'x-rapidapi-host': RAPID_HOST,
-                        'Content-Type': 'application/json'
-                    },
-                    // FIXED: Sending just the ID as per your snippet
-                    body: JSON.stringify({ id: video.id })
-                };
+            processedCount += batch.length;
+            const percent = Math.min((processedCount / totalVideos) * 100, 100);
 
-                const response = await fetch(apiUrl, options);
-                const data = await response.json();
+            progressFill.style.width = `${percent}%`;
+            btnText.innerText = `Downloading... ${Math.round(percent)}%`;
 
-                // Check for the link in the response (using your previous JSON structure)
-                // Note: Some APIs return 'linkDownload', others 'url', or 'link'. 
-                // We check 'linkDownload' first based on your logs.
-                const downloadLink = data.linkDownload || data.link || data.url;
-
-                if (downloadLink) {
-                    const audioResponse = await fetch(downloadLink);
-                    const audioBlob = await audioResponse.blob();
-
-                    // Sanitize title
-                    const safeTitle = video.title.replace(/[\\/:*?"<>|]/g, "_").trim();
-                    zip.file(`${safeTitle}.mp3`, audioBlob);
-                } else {
-                    console.warn(`Skipping ${video.title}: No download link found. API Response:`, data);
-                }
-
-            } catch (innerError) {
-                console.error(`Error on song "${video.title}":`, innerError);
-            }
-
-            // Sleep 1.5s to avoid hitting API rate limits
-            await sleep(1500);
+            await sleep(1000);
         }
 
-        // Generate ZIP
-        downloadBtn.innerText = "Zipping...";
+        btnText.innerText = "Zipping files...";
         const zipBlob = await zip.generateAsync({ type: "blob" });
         const zipUrl = URL.createObjectURL(zipBlob);
 
@@ -124,12 +128,20 @@ async function downloadPlaylistAsZip() {
         link.click();
         document.body.removeChild(link);
 
+        btnText.innerText = "Done!";
+        progressFill.style.backgroundColor = "#2196F3";
+
     } catch (err) {
-        console.error("Critical Error:", err);
-        alert("Download failed. Check console.");
+        console.error("Error:", err);
+        btnText.innerText = "Error Occurred";
+        progressFill.style.backgroundColor = "red";
     } finally {
-        downloadBtn.innerText = "Download ZIP";
-        downloadBtn.disabled = false;
+        setTimeout(() => {
+            downloadBtn.disabled = false;
+            btnText.innerText = "Download ZIP";
+            progressFill.style.width = "0%";
+            progressFill.style.backgroundColor = "#4caf50";
+        }, 5000);
     }
 }
 
@@ -140,5 +152,4 @@ function getPlaylistIdFromUrl(link) {
         const url = new URL(link);
         return url.searchParams.get('list');
     } catch (e) { return null; }
-
 }

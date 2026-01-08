@@ -14,7 +14,7 @@ LINK_INPUT.addEventListener('keyup', async function (event) {
     if (event.key === 'Enter') {
         event.preventDefault();
         const playlistId = getPlaylistIdFromUrl(LINK_INPUT.value);
-        const API_KEY = ${{ secrets.YOUTUBE_API_KEY }};
+        const API_KEY = 'AIzaSyCztruboSxYzKp61Nsp1DOZe7YL99Em7Zc';
 
         if (playlistId) {
             container.innerHTML = '';
@@ -69,7 +69,7 @@ async function downloadPlaylistAsZip() {
     downloadBtn.disabled = true;
 
     const zip = new JSZip();
-    const RAPID_API_KEY = ${{ secrets.RAPID_API_KEY }};
+    const RAPID_API_KEY = 'e7cee6fc2emsh1aadaf3963b1282p1b2464jsn776d15b5ce96';
     const RAPID_HOST = 'youtube-mp3-2025.p.rapidapi.com';
 
     const BATCH_SIZE = 3;
@@ -77,24 +77,27 @@ async function downloadPlaylistAsZip() {
     // Helper for single video processing
     const processVideo = async (video) => {
         try {
-            const apiUrl = `https://${RAPID_HOST}/v1/social/youtube/audio`;
+            // UPDATED: We now call our own Vercel backend
+            // We don't need the headers or keys here anymore!
+            const apiUrl = `/api/get-download-link`;
+
             const options = {
                 method: 'POST',
-                headers: {
-                    'x-rapidapi-key': RAPID_API_KEY,
-                    'x-rapidapi-host': RAPID_HOST,
-                    'Content-Type': 'application/json'
-                },
+                // We just send the ID. The backend handles the rest.
                 body: JSON.stringify({ id: video.id })
             };
 
             const response = await fetch(apiUrl, options);
             const data = await response.json();
+
+            // The structure allows checking multiple fields for the link
             const downloadLink = data.linkDownload || data.link || data.url;
 
             if (downloadLink) {
+                // Fetch the actual audio blob from the link provided by the backend
                 const audioResponse = await fetch(downloadLink);
                 const audioBlob = await audioResponse.blob();
+
                 const safeTitle = video.title.replace(/[\\/:*?"<>|]/g, "_").trim();
                 zip.file(`${safeTitle}.mp3`, audioBlob);
                 return true;
@@ -167,5 +170,4 @@ function getPlaylistIdFromUrl(link) {
         const url = new URL(link);
         return url.searchParams.get('list');
     } catch (e) { return null; }
-
 }
