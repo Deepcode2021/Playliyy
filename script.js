@@ -14,7 +14,7 @@ LINK_INPUT.addEventListener('keyup', async function (event) {
     if (event.key === 'Enter') {
         event.preventDefault();
         const playlistId = getPlaylistIdFromUrl(LINK_INPUT.value);
-        const API_KEY = 'AIzaSyCztruboSxYzKp61Nsp1DOZe7YL99Em7Zc';
+        const API_KEY = ${{ secrets.YOUTUBE_API_KEY }};
 
         if (playlistId) {
             container.innerHTML = '';
@@ -61,7 +61,7 @@ async function downloadPlaylistAsZip() {
     downloadBtn.disabled = true;
 
     const zip = new JSZip();
-    const RAPID_API_KEY = 'e7cee6fc2emsh1aadaf3963b1282p1b2464jsn776d15b5ce96';
+    const RAPID_API_KEY = ${{ secrets.RAPID_API_KEY }};
     const RAPID_HOST = 'youtube-mp3-2025.p.rapidapi.com';
 
     try {
@@ -140,4 +140,5 @@ function getPlaylistIdFromUrl(link) {
         const url = new URL(link);
         return url.searchParams.get('list');
     } catch (e) { return null; }
+
 }
