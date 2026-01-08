@@ -153,92 +153,50 @@ header h1 {
     font-family: system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, 'Open Sans', 'Helvetica Neue', sans-serif;
 }
 /* From Uiverse.io by satyamchaudharydev */
-.button {
-    --width: 150px;
-    --height: 65px;
-    --tooltip-height: 35px;
-    --tooltip-width: 90px;
-    --gap-between-tooltip-to-button: 18px;
-    --button-color: #262626;
-    --tooltip-color: #fff;
-    width: var(--width);
-    height: var(--height);
-    background: var(--button-color);
-    position: relative;
-    text-align: center;
-    border-radius: 0.45em;
-    font-family: "Arial";
+/* Ensure the button can contain the absolute positioning */
+#button {
     position: absolute;
-    transition: background 0.3s;
-    top: 110%;
-    z-index: 10;
-
-}
-
-.button::before {
-    position: absolute;
-    content: attr(data-tooltip);
-    width: var(--tooltip-width);
-    height: var(--tooltip-height);
-    background-color: var(--tooltip-color);
-    font-size: 0.9rem;
-    color: #111;
-    border-radius: .25em;
-    line-height: var(--tooltip-height);
-    bottom: calc(var(--height) + var(--gap-between-tooltip-to-button) + 10px);
-    left: calc(50% - var(--tooltip-width) / 2);
-}
-
-.button::after {
-    position: absolute;
-    content: '';
-    width: 0;
-    height: 0;
-    border: 10px solid transparent;
-    border-top-color: var(--tooltip-color);
-    left: calc(50% - 10px);
-    bottom: calc(100% + var(--gap-between-tooltip-to-button) - 10px);
-}
-
-.button::after,
-.button::before {
-    opacity: 0;
-    visibility: hidden;
-    transition: all 0.5s;
-}
-
-.text {
-    display: flex;
-    align-items: center;
-    justify-content: center;
-}
-
-.button-wrapper,
-.text {
     overflow: hidden;
+    top: 110%;
+    height: 3rem;
+    background-color: #7a7a7a;
+    border: none;
+    border-radius: 10%;
+    font-size: 1rem;
+    font-weight: 600;
+    font-family: system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, 'Open Sans', 'Helvetica Neue', sans-serif;
+    /* Clips the bar so it stays inside the rounded corners */
+    /* Keep your existing button styles (padding, borders, etc.) here */
+}
+
+/* The actual green progress bar */
+#progressFill {
     position: absolute;
-    width: 100%;
-    height: 100%;
+    top: 0;
     left: 0;
-    color: #fff;
+    height: 100%;
+    width: 0%;
+    /* Starts empty */
+    background-color: #c4c4c4;
+    /* Green color */
+    transition: width 0.5s ease;
+    /* Smooth animation */
+    z-index: 1;
+    /* Sits behind the text */
 }
 
-.text {
-    top: 0
+/* The text sits on top */
+#btnText {
+    position: relative;
+    z-index: 2;
+    
 }
 
-.text,
-.icon {
-    transition: top 0.5s;
-}
 
 
 
-.button:hover {
+#button:hover {
     background: #c9c9c9;
     cursor: pointer;
 }
 
-.button:hover .text {
-    top: -100%;
-}
