@@ -9,20 +9,20 @@ export default async function handler(request, response) {
     if (!id) {
         return response.status(400).json({ error: 'Missing Playlist ID' });
     }
-
-    const API_KEY = process.env.YOUTUBE_API_KEY; // Secure Key
+    
+    const API_KEY = process.env.YOUTUBE_API_KEY; // Secure Key by vercel
     const MAX_RESULTS = 50;
     const url = `https://www.googleapis.com/youtube/v3/playlistItems?part=snippet&playlistId=${id}&key=${API_KEY}&maxResults=${MAX_RESULTS}`;
 
     try {
         const ytResponse = await fetch(url);
-        const data = await ytResponse.json();
+        const data = await ytResponse.json(); // data come from the yt api v3
 
         if (data.error) {
             return response.status(500).json(data.error);
         }
 
-        response.status(200).json(data);
+        response.status(200).json(data); // send back to the frontend
     } catch (error) {
         response.status(500).json({ error: 'Failed to fetch YouTube data' });
     }
