@@ -10,6 +10,8 @@ const downloadBtn = document.querySelector('#button');
 const btnText = document.getElementById('btnText');
 const progressFill = document.getElementById('progressFill');
 
+function ytmusic(){
+
 let globalYtData = [];
 
 // 2. LISTEN: Fetch Playlist
@@ -29,7 +31,7 @@ LINK_INPUT.addEventListener('keyup', async function (event) {
 
 // 3. FETCH: Get Titles & IDs (Calls /api/get-playlist)
 async function getPlaylistSongNames(playlistId) {
-    // UPDATED: No API Key here. Pointing to our backend.
+    
     const url = `/api/get-playlist?id=${playlistId}`;
 
     try {
@@ -152,4 +154,40 @@ function getPlaylistIdFromUrl(link) {
         const url = new URL(link);
         return url.searchParams.get('list');
     } catch (e) { return null; }
+}
+}
+
+function spotify(){
+    
+}
+
+function getPlatform(url) {
+    try {
+        // Create a URL object to easily parse the hostname
+        const parsedUrl = new URL(url);
+        const hostname = parsedUrl.hostname;
+
+        // 1. Check for Spotify
+        // Matches: open.spotify.com, spotify.link, www.spotify.com
+        if (hostname.includes('spotify.com') || hostname.includes('spotify.link')) {
+            spotify();
+        }
+
+        // 2. Check for YouTube Music (Strict)
+        // Matches: music.youtube.com ONLY
+        if (hostname === 'music.youtube.com') {
+            ytmusic();
+        }
+
+        // 3. Check for Standard YouTube
+        // Matches: youtube.com, www.youtube.com, youtu.be
+        if (hostname.includes('youtube.com') || hostname.includes('youtu.be')) {
+            return 'We want music';
+        }
+
+        return 'Unknown Platform';
+
+    } catch (error) {
+        return 'Invalid URL';
+    }
 }
