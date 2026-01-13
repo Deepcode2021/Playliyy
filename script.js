@@ -153,3 +153,4 @@ function getPlaylistIdFromUrl(link) {
         return url.searchParams.get('list');
     } catch (e) { return null; }
 }
+

@@ -1,173 +1,178 @@
 import JSZip from 'https://esm.sh/jszip@3.10.1';
 
-// 1. HELPER: Sleep function to prevent API blocking
+// 1. HELPER: Sleep function
 const sleep = (ms) => new Promise(resolve => setTimeout(resolve, ms));
 
 const container = document.getElementById('cardContainer');
 const LINK_INPUT = document.getElementById('link');
 const downloadBtn = document.querySelector('#button');
+const btnText = document.getElementById('btnText');
+const progressFill = document.getElementById('progressFill');
 
-let globalYtData = [];
+// Store data here regardless of platform
+let globalTrackData = [];
+let currentPlatform = ''; // 'youtube' or 'spotify'
 
-// 2. LISTEN: Fetch playlist metadata
+// 2. HELPER: Detect Platform
+function getPlatform(link) {
+    try {
+        const url = new URL(link);
+        if (url.hostname.includes('spotify.com') || url.hostname.includes('spoti.fi')) return 'spotify';
+        if (url.hostname.includes('youtube.com') || url.hostname.includes('youtu.be')) return 'youtube';
+        return 'unknown';
+    } catch { return 'invalid'; }
+}
+
+// 3. LISTEN: Main Logic
 LINK_INPUT.addEventListener('keyup', async function (event) {
     if (event.key === 'Enter') {
         event.preventDefault();
-        const playlistId = getPlaylistIdFromUrl(LINK_INPUT.value);
-        const API_KEY = 'AIzaSyCztruboSxYzKp61Nsp1DOZe7YL99Em7Zc';
+        const rawLink = LINK_INPUT.value;
+        currentPlatform = getPlatform(rawLink);
 
-        if (playlistId) {
-            container.innerHTML = '';
-            globalYtData = [];
-            await getPlaylistSongNames(playlistId, API_KEY);
+        container.innerHTML = '';
+        globalTrackData = [];
+
+        if (currentPlatform === 'youtube') {
+            const playlistId = new URL(rawLink).searchParams.get('list');
+            if (playlistId) await fetchTracks(`/api/get-playlist?id=${playlistId}`);
+        }
+        else if (currentPlatform === 'spotify') {
+            // Extract ID: .../playlist/37i9dQZF1DXcBWIGoYBM5M...
+            const match = rawLink.match(/playlist\/([a-zA-Z0-9]+)/);
+            if (match) await fetchTracks(`/api/get-spotify-playlist?id=${match[1]}`);
+        }
+        else {
+            alert("Please enter a valid YouTube or Spotify playlist link.");
         }
     }
 });
 
-// 3. FETCH: Get Titles & IDs
-async function getPlaylistSongNames(playlistId, apiKey) {
-    const MAX_RESULTS = 50;
-    const url = `https://www.googleapis.com/youtube/v3/playlistItems?part=snippet&playlistId=${playlistId}&key=${apiKey}&maxResults=${MAX_RESULTS}`;
-
+// 4. FETCH: Generic Track Fetcher (Works for both)
+async function fetchTracks(apiUrl) {
     try {
-        const response = await fetch(url);
+        const response = await fetch(apiUrl);
         const data = await response.json();
 
         if (data.items) {
             data.items.forEach((item) => {
-                const songTitle = item.snippet.title;
-                const videoId = item.snippet.resourceId.videoId;
-                globalYtData.push({ id: videoId, title: songTitle });
+                // Unified structure for both platforms
+                let title, id;
 
+                if (currentPlatform === 'youtube') {
+                    title = item.snippet.title;
+                    id = item.snippet.resourceId.videoId;
+                } else {
+                    title = item.title;
+                    id = item.id;
+                }
+
+                globalTrackData.push({ id, title });
+
+                // Create Card UI
                 const card = document.createElement('div');
                 card.className = 'card';
-                card.innerHTML = `<h3>${songTitle}</h3>`;
+                card.innerHTML = `<h3>${title}</h3>`;
                 container.appendChild(card);
             });
         }
     } catch (error) {
-        console.error('YouTube API fetch error:', error);
+        console.error('Error fetching playlist:', error);
+        alert("Failed to load playlist.");
     }
 }
 
-// 4. DOWNLOAD: Updated to use the correct /v1/social/youtube/audio endpoint
-// 3. New Optimized "Batch" Download with Progress Bar
+// 5. DOWNLOAD: Bulk Download
 async function downloadPlaylistAsZip() {
-    if (globalYtData.length === 0) {
+    if (globalTrackData.length === 0) {
         alert("No videos loaded!");
         return;
     }
 
-    // UI Elements
-    const btnText = document.getElementById('btnText');
-    const progressFill = document.getElementById('progressFill');
-    const downloadBtn = document.querySelector('#button');
-
-    // Reset UI
     btnText.innerText = "Starting...";
     progressFill.style.width = "0%";
     downloadBtn.disabled = true;
 
     const zip = new JSZip();
-    const RAPID_API_KEY = 'e7cee6fc2emsh1aadaf3963b1282p1b2464jsn776d15b5ce96';
-    const RAPID_HOST = 'youtube-mp3-2025.p.rapidapi.com';
-
     const BATCH_SIZE = 3;
 
-    // Helper for single video processing
-    const processVideo = async (video) => {
+    // Helper: Selects the correct API endpoint
+    const processItem = async (track) => {
         try {
-            // UPDATED: We now call our own Vercel backend
-            // We don't need the headers or keys here anymore!
-            const apiUrl = `/api/get-download-link`;
+            let apiUrl = '';
 
-            const options = {
+            // Choose API based on platform
+            if (currentPlatform === 'youtube') {
+                apiUrl = `/api/get-download-link`; // Your existing YT backend
+            } else {
+                apiUrl = `/api/get-spotify-download`; // Your NEW Spotify backend
+            }
+
+            const response = await fetch(apiUrl, {
                 method: 'POST',
-                // We just send the ID. The backend handles the rest.
-                body: JSON.stringify({ id: video.id })
-            };
-
-            const response = await fetch(apiUrl, options);
+                body: JSON.stringify({ id: track.id })
+            });
             const data = await response.json();
 
-            // The structure allows checking multiple fields for the link
-            const downloadLink = data.linkDownload || data.link || data.url;
+            // Handle different response structures
+            const downloadLink = data.link || data.url || data.linkDownload;
 
             if (downloadLink) {
-                // Fetch the actual audio blob from the link provided by the backend
                 const audioResponse = await fetch(downloadLink);
                 const audioBlob = await audioResponse.blob();
-
-                const safeTitle = video.title.replace(/[\\/:*?"<>|]/g, "_").trim();
+                const safeTitle = track.title.replace(/[\\/:*?"<>|]/g, "_").trim();
                 zip.file(`${safeTitle}.mp3`, audioBlob);
                 return true;
             }
         } catch (error) {
-            console.error(`Failed: ${video.title}`, error);
+            console.error(`Failed: ${track.title}`, error);
             return false;
         }
     };
 
+    // --- BATCH DOWNLOADING LOOP ---
     try {
-        const totalVideos = globalYtData.length;
+        const total = globalTrackData.length;
         let processedCount = 0;
 
-        // --- BATCH LOOP ---
-        for (let i = 0; i < totalVideos; i += BATCH_SIZE) {
-            const batch = globalYtData.slice(i, i + BATCH_SIZE);
+        for (let i = 0; i < total; i += BATCH_SIZE) {
+            const batch = globalTrackData.slice(i, i + BATCH_SIZE);
+            await Promise.all(batch.map(track => processItem(track)));
 
-            // Run batch
-            await Promise.all(batch.map(video => processVideo(video)));
-
-            // Update Progress Math
             processedCount += batch.length;
-            // Clamp to 100% just in case
-            const percent = Math.min((processedCount / totalVideos) * 100, 100);
-
-            // Update UI
-            
+            const percent = Math.min((processedCount / total) * 100, 100);
             progressFill.style.width = `${percent}%`;
             btnText.innerText = `Downloading... ${Math.round(percent)}%`;
 
-            // Cooldown
-            await sleep(1000);
+            await sleep(1000); // Prevent rate limits
         }
 
-        // Generate ZIP
         btnText.innerText = "Zipping files...";
         const zipBlob = await zip.generateAsync({ type: "blob" });
         const zipUrl = URL.createObjectURL(zipBlob);
 
         const link = document.createElement('a');
         link.href = zipUrl;
-        link.download = `Playlist_Download_${Date.now()}.zip`;
+        link.download = `${currentPlatform}_Playlist_${Date.now()}.zip`;
         document.body.appendChild(link);
         link.click();
         document.body.removeChild(link);
 
-        // Success State
-        btnText.innerText = "Done! Download Started";
-        progressFill.style.backgroundColor = "#2196F3"; // Change color to blue on finish
+        btnText.innerText = "Done!";
+        progressFill.style.backgroundColor = "#dedede";
 
     } catch (err) {
         console.error("Error:", err);
         btnText.innerText = "Error Occurred";
         progressFill.style.backgroundColor = "red";
     } finally {
-        // Optional: Re-enable button after a few seconds
         setTimeout(() => {
             downloadBtn.disabled = false;
             btnText.innerText = "Download ZIP";
             progressFill.style.width = "0%";
-            progressFill.style.backgroundColor = "#4caf50"; // Reset color
+            progressFill.style.backgroundColor = "#4caf50";
         }, 5000);
     }
 }
-downloadBtn.addEventListener('click', downloadPlaylistAsZip);
 
-function getPlaylistIdFromUrl(link) {
-    try {
-        const url = new URL(link);
-        return url.searchParams.get('list');
-    } catch (e) { return null; }
-}
+downloadBtn.addEventListener('click', downloadPlaylistAsZip);
