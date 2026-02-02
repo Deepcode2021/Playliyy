@@ -66,6 +66,14 @@ header h1 {
     /* letter-spacing: 1px; */
     /* margin-left: 2%; */
 }
+.made{
+    color: #fff;
+    font-family: "Tomorrow", sans-serif;
+    font-weight: 200;
+    font-style: italic;
+    font-size: 1rem;
+
+}
 .link {
     border: 2px solid transparent;
     width: 60%;
@@ -199,4 +207,5 @@ header h1 {
     background: #c9c9c9;
     cursor: pointer;
 }
+
 
