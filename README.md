@@ -1,4 +1,4 @@
-# 🎵 Playliyy
+# 🎵 Playliyy v1
 
 A lightweight, client-side web application built with **HTML, CSS, and JavaScript** that allows users to fetch their YouTube or Spotify playlists and download them in manageable **chunks** for offline listening. 
 
